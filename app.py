@@ -53,7 +53,7 @@ def login():
             return render_template("login.html", error="Invalid email or password.")
 
         session["user_id"] = user["id"]
-        return redirect(url_for("landing"))
+        return redirect(url_for("profile"))
 
     return render_template("login.html")
 
@@ -80,7 +80,46 @@ def logout():
 
 @app.route("/profile")
 def profile():
-    return "Profile page — coming in Step 4"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    user = {
+        "name": "Demo User",
+        "email": "demo@spendly.com",
+        "initials": "DU",
+        "member_since": "March 2024",
+    }
+
+    stats = {
+        "total_spent": 297.44,
+        "transaction_count": 6,
+        "top_category": "Entertainment",
+    }
+
+    transactions = [
+        {"date": "Aug 27, 2026", "description": "Grocery shopping",   "category": "Food",          "category_slug": "food",          "amount": 54.20},
+        {"date": "Aug 25, 2026", "description": "Coffee with client", "category": "Food",          "category_slug": "food",          "amount": 8.75},
+        {"date": "Aug 24, 2026", "description": "Cab to office",      "category": "Transport",     "category_slug": "transport",     "amount": 22.00},
+        {"date": "Aug 20, 2026", "description": "Internet bill",      "category": "Bills",         "category_slug": "bills",         "amount": 59.99},
+        {"date": "Aug 18, 2026", "description": "Concert tickets",    "category": "Entertainment", "category_slug": "entertainment", "amount": 85.00},
+        {"date": "Aug 12, 2026", "description": "Running shoes",      "category": "Shopping",      "category_slug": "shopping",      "amount": 67.50},
+    ]
+
+    categories = [
+        {"name": "Entertainment", "slug": "entertainment", "amount": 85.00, "percent": 28.6},
+        {"name": "Shopping",      "slug": "shopping",      "amount": 67.50, "percent": 22.7},
+        {"name": "Food",          "slug": "food",          "amount": 62.95, "percent": 21.2},
+        {"name": "Bills",         "slug": "bills",         "amount": 59.99, "percent": 20.2},
+        {"name": "Transport",     "slug": "transport",     "amount": 22.00, "percent": 7.4},
+    ]
+
+    return render_template(
+        "profile.html",
+        user=user,
+        stats=stats,
+        transactions=transactions,
+        categories=categories,
+    )
 
 
 @app.route("/expenses/add")
