@@ -147,6 +147,8 @@
 .category-badge-bills::before         { background: var(--danger); }
 .category-badge-entertainment::before { background: var(--accent); }
 .category-badge-shopping::before      { background: var(--ink-soft); }
+.category-badge-health::before        { background: var(--ink-muted); }
+.category-badge-other::before         { background: var(--ink-faint); }
 
 /* ------------------------------------------------------------------ */
 /* Category breakdown bar-fill modifiers                               */
@@ -156,6 +158,8 @@
 .mock-bar-transport     { background: var(--hero-accent); }
 .mock-bar-entertainment { background: var(--accent); }
 .mock-bar-shopping      { background: var(--ink-soft); }
+.mock-bar-health        { background: var(--ink-muted); }
+.mock-bar-other         { background: var(--ink-faint); }
 
 /* The shared .mock-bar-row grid (style.css) fixes its label column at   */
 /* 70px, sized for the landing page's short mock labels (Food, Bills).   */
