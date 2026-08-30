@@ -1,7 +1,18 @@
+from datetime import datetime
+
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import check_password_hash
 
-from database.db import init_db, seed_db, get_user_by_email, create_user
+from database.db import (
+    init_db,
+    seed_db,
+    get_user_by_email,
+    create_user,
+    get_user_by_id,
+    get_expenses_by_user,
+    get_expense_summary,
+    get_category_breakdown,
+)
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-key-change-in-production"
@@ -80,37 +91,59 @@ def logout():
 
 @app.route("/profile")
 def profile():
-    if not session.get("user_id"):
+    user_id = session.get("user_id")
+    if not user_id:
         return redirect(url_for("login"))
 
+    user_row = get_user_by_id(user_id)
+    if user_row is None:
+        session.clear()
+        return redirect(url_for("login"))
+
+    name = user_row["name"]
+    parts = name.split()
+    if len(parts) >= 2:
+        initials = (parts[0][0] + parts[-1][0]).upper()
+    elif parts:
+        initials = parts[0][:2].upper()
+    else:
+        initials = ""
+
+    created_at = datetime.strptime(user_row["created_at"], "%Y-%m-%d %H:%M:%S")
+
     user = {
-        "name": "Demo User",
-        "email": "demo@spendly.com",
-        "initials": "DU",
-        "member_since": "March 2024",
+        "name": name,
+        "email": user_row["email"],
+        "initials": initials,
+        "member_since": created_at.strftime("%B %Y"),
     }
 
+    summary = get_expense_summary(user_id)
     stats = {
-        "total_spent": 297.44,
-        "transaction_count": 6,
-        "top_category": "Entertainment",
+        "total_spent": summary["total_spent"],
+        "transaction_count": summary["transaction_count"],
+        "top_category": summary["top_category"] or "—",
     }
 
-    transactions = [
-        {"date": "Aug 27, 2026", "description": "Grocery shopping",   "category": "Food",          "category_slug": "food",          "amount": 54.20},
-        {"date": "Aug 25, 2026", "description": "Coffee with client", "category": "Food",          "category_slug": "food",          "amount": 8.75},
-        {"date": "Aug 24, 2026", "description": "Cab to office",      "category": "Transport",     "category_slug": "transport",     "amount": 22.00},
-        {"date": "Aug 20, 2026", "description": "Internet bill",      "category": "Bills",         "category_slug": "bills",         "amount": 59.99},
-        {"date": "Aug 18, 2026", "description": "Concert tickets",    "category": "Entertainment", "category_slug": "entertainment", "amount": 85.00},
-        {"date": "Aug 12, 2026", "description": "Running shoes",      "category": "Shopping",      "category_slug": "shopping",      "amount": 67.50},
-    ]
+    transactions = []
+    for row in get_expenses_by_user(user_id):
+        txn_date = datetime.strptime(row["date"], "%Y-%m-%d")
+        transactions.append({
+            "date": f"{txn_date:%b} {txn_date.day}, {txn_date.year}",
+            "description": row["description"],
+            "category": row["category"],
+            "category_slug": row["category"].lower(),
+            "amount": row["amount"],
+        })
 
     categories = [
-        {"name": "Entertainment", "slug": "entertainment", "amount": 85.00, "percent": 28.6},
-        {"name": "Shopping",      "slug": "shopping",      "amount": 67.50, "percent": 22.7},
-        {"name": "Food",          "slug": "food",          "amount": 62.95, "percent": 21.2},
-        {"name": "Bills",         "slug": "bills",         "amount": 59.99, "percent": 20.2},
-        {"name": "Transport",     "slug": "transport",     "amount": 22.00, "percent": 7.4},
+        {
+            "name": row["category"],
+            "slug": row["category"].lower(),
+            "amount": row["total"],
+            "percent": row["percent"],
+        }
+        for row in get_category_breakdown(user_id)
     ]
 
     return render_template(
@@ -139,3 +172,7 @@ def delete_expense(id):
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
+
+
+# karthik.krishnan807@gmail.com
+# password123
