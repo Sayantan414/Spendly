@@ -33,9 +33,32 @@
         </div>
     </div>
 
+    <div class="profile-section profile-filter">
+        <h2 class="legal-block-title">Filter by Date</h2>
+        <form method="GET" action="{{ url_for('profile') }}" class="profile-filter-form">
+            <div class="form-group">
+                <label for="start_date">From</label>
+                <input type="date" id="start_date" name="start_date"
+                       class="form-input" value="{{ filters.start_date }}">
+            </div>
+            <div class="form-group">
+                <label for="end_date">To</label>
+                <input type="date" id="end_date" name="end_date"
+                       class="form-input" value="{{ filters.end_date }}">
+            </div>
+            <div class="profile-filter-actions">
+                <button type="submit" class="btn-primary">Filter</button>
+                <a href="{{ url_for('profile') }}" class="btn-ghost">Clear</a>
+            </div>
+        </form>
+    </div>
+
     <div class="profile-section">
         <h2 class="legal-block-title">Recent Transactions</h2>
         <div class="profile-table-wrapper">
+            {% if not transactions and filters.start_date and filters.end_date %}
+            <p class="profile-empty-state">No transactions in this range</p>
+            {% else %}
             <table class="profile-table">
                 <thead>
                     <tr>
@@ -60,6 +83,7 @@
                 {% endfor %}
                 </tbody>
             </table>
+            {% endif %}
         </div>
     </div>
 

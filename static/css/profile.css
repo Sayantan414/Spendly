@@ -64,6 +64,38 @@
 }
 
 /* ------------------------------------------------------------------ */
+/* Date filter form                                                    */
+/* ------------------------------------------------------------------ */
+
+.profile-filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem;
+}
+
+.profile-filter-form .form-group {
+    margin-bottom: 0;
+}
+
+.profile-filter-form .form-input {
+    width: auto;
+    min-width: 160px;
+}
+
+.profile-filter-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.profile-empty-state {
+    padding: 2rem 1.25rem;
+    text-align: center;
+    color: var(--ink-muted);
+    font-size: 0.9rem;
+}
+
+/* ------------------------------------------------------------------ */
 /* Transaction history table                                           */
 /* ------------------------------------------------------------------ */
 
@@ -182,5 +214,14 @@
         flex-direction: column;
         align-items: flex-start;
         text-align: left;
+    }
+
+    .profile-filter-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .profile-filter-form .form-input {
+        width: 100%;
     }
 }
