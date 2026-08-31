@@ -23,6 +23,27 @@ with app.app_context():
 
 
 # ------------------------------------------------------------------ #
+# Helpers                                                              #
+# ------------------------------------------------------------------ #
+
+def parse_date_filter(args):
+    """Validate start_date/end_date query params, or (None, None) if absent/invalid."""
+    start_raw = args.get("start_date", "")
+    end_raw = args.get("end_date", "")
+
+    if not (start_raw and end_raw):
+        return None, None
+
+    try:
+        start = datetime.strptime(start_raw, "%Y-%m-%d")
+        end = datetime.strptime(end_raw, "%Y-%m-%d")
+    except ValueError:
+        return None, None
+
+    return (start_raw, end_raw) if start <= end else (None, None)
+
+
+# ------------------------------------------------------------------ #
 # Routes                                                              #
 # ------------------------------------------------------------------ #
 
@@ -100,6 +121,9 @@ def profile():
         session.clear()
         return redirect(url_for("login"))
 
+    start_date, end_date = parse_date_filter(request.args)
+    filters = {"start_date": start_date or "", "end_date": end_date or ""}
+
     name = user_row["name"]
     parts = name.split()
     if len(parts) >= 2:
@@ -118,7 +142,7 @@ def profile():
         "member_since": created_at.strftime("%B %Y"),
     }
 
-    summary = get_expense_summary(user_id)
+    summary = get_expense_summary(user_id, start_date=start_date, end_date=end_date)
     stats = {
         "total_spent": summary["total_spent"],
         "transaction_count": summary["transaction_count"],
@@ -126,7 +150,7 @@ def profile():
     }
 
     transactions = []
-    for row in get_expenses_by_user(user_id):
+    for row in get_expenses_by_user(user_id, start_date=start_date, end_date=end_date):
         txn_date = datetime.strptime(row["date"], "%Y-%m-%d")
         transactions.append({
             "date": f"{txn_date:%b} {txn_date.day}, {txn_date.year}",
@@ -143,7 +167,7 @@ def profile():
             "amount": row["total"],
             "percent": row["percent"],
         }
-        for row in get_category_breakdown(user_id)
+        for row in get_category_breakdown(user_id, start_date=start_date, end_date=end_date)
     ]
 
     return render_template(
@@ -152,6 +176,7 @@ def profile():
         stats=stats,
         transactions=transactions,
         categories=categories,
+        filters=filters,
     )
 
 
